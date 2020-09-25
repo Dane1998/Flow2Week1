@@ -1,4 +1,3 @@
-
 package dtomapper;
 
 import entities.Person;
@@ -8,24 +7,36 @@ import entities.Person;
  * @author Dane
  */
 public class PersonDTO {
+
     private long id;
     private String fName;
     private String lName;
     private String phone;
-    
+    private String street;
+    private String zip;
+    private String city;
+
     public PersonDTO(Person p) {
         this.fName = p.getFirstName();
         this.lName = p.getLastName();
         this.phone = p.getPhone();
         this.id = p.getId();
+        this.street = p.getAddress().getStreet();
+        this.zip = p.getAddress().getZip();
+        this.city = p.getAddress().getCity();
     }
-    public PersonDTO(String fn,String ln, String phone) {
+
+    public PersonDTO(String fn, String ln, String phone, String street, String zip, String city) {
         this.fName = fn;
         this.lName = ln;
-        this.phone = phone;        
+        this.phone = phone;
+        this.street = street;
+        this.zip = zip;
+        this.city = city;
     }
-    public PersonDTO() {}
 
+    public PersonDTO() {
+    }
 
     public long getId() {
         return id;
@@ -58,7 +69,31 @@ public class PersonDTO {
     public void setPhone(String phone) {
         this.phone = phone;
     }
-    
+
+    public String getStreet() {
+        return street;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public String getZip() {
+        return zip;
+    }
+
+    public void setZip(String zip) {
+        this.zip = zip;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -76,6 +111,5 @@ public class PersonDTO {
         }
         return true;
     }
- 
-    
+
 }

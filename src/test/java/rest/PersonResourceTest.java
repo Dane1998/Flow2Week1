@@ -1,10 +1,12 @@
 package rest;
 
 import dtomapper.PersonDTO;
+import entities.Address;
 import entities.Person;
 import utils.EMF_Creator;
 import io.restassured.RestAssured;
 import static io.restassured.RestAssured.given;
+import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import java.net.URI;
 import java.time.Instant;
@@ -35,9 +37,8 @@ public class PersonResourceTest {
 
     private static final int SERVER_PORT = 7777;
     private static final String SERVER_URL = "http://localhost/api";
-    private static Person p1 = new Person("Hans", "Peder", "123123");
-    private static Person p2 = new Person("Knud", "Erik", "987987");
-    private static Person p3 = new Person("Jens", "Erik", "44444444");
+    private static Person p1;
+    private static Person p2;
 
     static final URI BASE_URI = UriBuilder.fromUri(SERVER_URL).port(SERVER_PORT).build();
     private static HttpServer httpServer;
@@ -74,13 +75,17 @@ public class PersonResourceTest {
     @BeforeEach
     public void setUp() {
         EntityManager em = emf.createEntityManager();
+        p1 = new Person("Hans", "Peder", "123123");
+        p1.setAddress(new Address("Hansvej", "111", "Pederby"));
+        p2 = new Person("Knud", "Erik", "987987");
+        p2.setAddress(new Address("Knudvej", "222", "Knudby"));
 
         try {
             em.getTransaction().begin();
             em.createNamedQuery("Person.deleteAllRows").executeUpdate();
+            em.createNamedQuery("Address.deleteAllRows").executeUpdate();
             em.persist(p1);
             em.persist(p2);
-            em.persist(p3);
             em.getTransaction().commit();
         } finally {
             em.close();
@@ -115,43 +120,39 @@ public class PersonResourceTest {
                 .get("/person/count").then()
                 .assertThat()
                 .statusCode(HttpStatus.OK_200.getStatusCode())
-                .body("count", equalTo(3));
+                .body("count", equalTo(2));
     }
 
     @Test
     public void testAddPerson() {
         given()
-                .contentType("application/json")
-                .body(new PersonDTO("Michael", "Scofield", "4444"))
+                .contentType(ContentType.JSON)
+                .body(new PersonDTO("Hej", "Scofield", "4444", "Vej", "111", "By"))
                 .when()
                 .post("person")
                 .then()
-                .body("fName", equalTo("Michael"))
+                .body("fName", equalTo("Hej"))
                 .body("lName", equalTo("Scofield"))
                 .body("phone", equalTo("4444"))
+                .body("street", equalTo("Vej"))
+                .body("zip", equalTo("111"))
+                .body("city", equalTo("By"))
                 .body("id", notNullValue());
     }
 
-    /*@Test
-    public void testDeletePerson() throws Exception {
-    PersonDTO person = new PersonDTO(p1);
-    given()
-    .contentType("application/json")
-    .delete("/person/" + person.getId())
-    .then()
-    .assertThat()
-    .statusCode(HttpStatus.OK_200.getStatusCode());
-    
-    List<PersonDTO> personsDTO;
-    personsDTO = given()
-    .contentType("application/json")
-    .when()
-    .get("/person/all")
-    .then()
-    .extract().body().jsonPath().getList("all", PersonDTO.class);
-    
-    PersonDTO DTO2 = new PersonDTO(p2);
-    PersonDTO DTO3 = new PersonDTO(p3);
-    assertThat(personsDTO, containsInAnyOrder(DTO2, DTO3));
-    }*/
+    @Test
+    public void testUpdatePerson(){
+        PersonDTO person = new PersonDTO(p1);
+        person.setPhone("321321");
+        given()
+                .contentType(ContentType.JSON)
+                .body(person)
+                .when()
+                .put("person/" + person.getId())
+                .then()
+                .body("fName", equalTo("Hans"))
+                .body("lName", equalTo("Peder"))
+                .body("phone", equalTo("321321"))
+                .body("id", equalTo((int)person.getId()));
+    }
 }

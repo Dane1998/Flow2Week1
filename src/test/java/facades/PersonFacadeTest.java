@@ -1,6 +1,7 @@
 package facades;
 
 import dtomapper.PersonDTO;
+import entities.Address;
 import utils.EMF_Creator;
 import entities.Person;
 import javax.persistence.EntityManager;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import sun.security.pkcs11.P11Util;
 
 //Uncomment the line below, to temporarily disable this test
 //@Disabled
@@ -19,8 +21,9 @@ public class PersonFacadeTest {
 
     private static EntityManagerFactory emf;
     private static PersonFacade facade;
-    private static Person p1 = new Person("Hans", "Peder", "123123");
-    private static Person p2 = new Person("Knud", "Erik", "987987");
+    private static Person p1;
+    private static Person p2;
+    
 
     public PersonFacadeTest() {
     }
@@ -41,9 +44,14 @@ public class PersonFacadeTest {
     @BeforeEach
     public void setUp() {
         EntityManager em = emf.createEntityManager();
+        p1 = new Person("Hans", "Peder", "123123");
+        p1.setAddress(new Address("Hansvej", "111", "Pederby"));
+        p2 = new Person("Knud", "Erik", "987987");
+        p2.setAddress(new Address("Knudvej", "222", "Knudby"));
         try {
             em.getTransaction().begin();
             em.createNamedQuery("Person.deleteAllRows").executeUpdate();
+            em.createNamedQuery("Address.deleteAllRows").executeUpdate();
             em.persist(p1);
             em.persist(p2);
             em.getTransaction().commit();
@@ -68,7 +76,11 @@ public class PersonFacadeTest {
         String fName = "Daniel";
         String lName = "Poulsen";
         String phone = "123123";
-        PersonDTO expResult = new PersonDTO(fName, lName, phone);
+        String street = "Ligustervænget";
+        String zip = "375";
+        String city = "Little Whining";
+        
+        PersonDTO expResult = new PersonDTO(fName, lName, phone, street, zip, city);
         expResult.setId(expResult.getId());
     }
 
@@ -89,7 +101,7 @@ public class PersonFacadeTest {
         PersonFacade instance = PersonFacade.getPersonFacade(emf);
         PersonDTO expResult = new PersonDTO(p1);
         expResult.setPhone("123123123");
-        person.setPhone("123123123");;
+        person.setPhone("123123123");
         PersonDTO result = instance.editPerson(person);
         assertEquals(expResult.getPhone(), result.getPhone());
                 

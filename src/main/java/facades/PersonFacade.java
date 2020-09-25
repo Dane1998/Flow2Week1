@@ -2,6 +2,7 @@ package facades;
 
 import dtomapper.PersonDTO;
 import dtomapper.PersonsDTO;
+import entities.Address;
 import entities.Person;
 import exceptions.ExceptionDTO;
 import exceptions.MissingInputException;
@@ -53,7 +54,7 @@ public class PersonFacade implements IPersonFacade {
     }
 
     @Override
-    public PersonDTO addPerson(String fName, String lName, String phone) throws PersonNotFoundException, MissingInputException {
+    public PersonDTO addPerson(String fName, String lName, String phone, String street, String zip, String city) throws PersonNotFoundException, MissingInputException {
         EntityManager em = getEntityManager();
         Person person = new Person(fName, lName, phone);
         if ((fName.length() == 0) || (lName.length() == 0)) {
@@ -61,6 +62,16 @@ public class PersonFacade implements IPersonFacade {
         }
         try {
             em.getTransaction().begin();
+            Query query = em.createQuery("SELECT a FROM Address a WHERE a.street = :street AND a.zip = :zip AND a.city = :city");
+            query.setParameter("street", street);
+            query.setParameter("zip", zip);
+            query.setParameter("city", city);
+            List<Address> addresses = query.getResultList();
+            if(addresses.size() > 0){
+                person.setAddress(addresses.get(0));
+            }else{
+                person.setAddress(new Address(street,zip,city));
+            }
             em.persist(person);
             em.getTransaction().commit();
         } finally {
@@ -115,9 +126,9 @@ public class PersonFacade implements IPersonFacade {
 
     @Override
     public PersonDTO editPerson(PersonDTO p) throws PersonNotFoundException, MissingInputException {
-        if((p.getfName().length() == 0 ) || (p.getlName().length() == 0 )){
+        if ((p.getfName().length() == 0) || (p.getlName().length() == 0)) {
             throw new MissingInputException("First name and/or last name is missing");
-        }        
+        }
         EntityManager em = getEntityManager();
         Person person = em.find(Person.class, p.getId());
         if (person == null) {

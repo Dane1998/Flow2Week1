@@ -70,7 +70,7 @@ public class PersonResource {
     @Consumes({MediaType.APPLICATION_JSON})
     public String add(String person) throws PersonNotFoundException, MissingInputException{
         PersonDTO p = GSON.fromJson(person, PersonDTO.class);
-        PersonDTO pAdded = FACADE.addPerson(p.getfName(), p.getlName(), p.getPhone());
+        PersonDTO pAdded = FACADE.addPerson(p.getfName(), p.getlName(), p.getPhone(), p.getStreet(), p.getZip(), p.getCity());
         return GSON.toJson(pAdded);
     }
     
@@ -85,7 +85,7 @@ public class PersonResource {
     @Path("{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
-    public String updatePerson(@PathParam("id")long id, String person){
+    public String updatePerson(@PathParam("id")long id, String person) throws PersonNotFoundException, MissingInputException{
         PersonDTO pDTO = GSON.fromJson(person, PersonDTO.class);
         PersonDTO pNew = FACADE.editPerson(pDTO);
         return GSON.toJson(pNew);
